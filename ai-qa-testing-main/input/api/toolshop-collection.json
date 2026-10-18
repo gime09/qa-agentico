@@ -1,0 +1,625 @@
+{
+  "info": {
+    "name": "ToolShop API Test Suite",
+    "_postman_id": "toolshop-v1-collection",
+    "description": "Colección de pruebas para Practice Software Testing API. Cobertura completa de los 22 casos documentados en output/casos-api/casos-api-toolshop.md (CP-API-001 a CP-API-022).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Obtener Catálogo Completo (GET /products) [CP-API-009, CP-API-012]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-009: Status code es 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-009: Retorna lista de productos paginada', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+              "});",
+              "pm.test('CP-API-012: Endpoint es público (se accedió sin header Authorization)', function () {",
+              "    pm.expect(pm.request.headers.has('Authorization')).to.eql(false);",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.length > 0 && jsonData.data[0].id) {",
+              "        pm.environment.set('sample_product_id', jsonData.data[0].id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Validar Límite de 9 Productos por Página, RN-CAT-01 (GET /products) [CP-API-010]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-010: La página no supera 9 productos (RN-CAT-01)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.at.most(9);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Validar Schema del Catálogo (GET /products) [CP-API-011]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-011: Cada producto tiene id y name de tipo string', function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.data.forEach(function (producto) {",
+              "        pm.expect(producto).to.have.property('id').that.is.a('string');",
+              "        pm.expect(producto).to.have.property('name').that.is.a('string');",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Búsqueda de Producto por Nombre Completo (GET /products/search) [CP-API-013]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/search?q=Hammer",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "search"],
+          "query": [{ "key": "q", "value": "Hammer" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-013: Status code es 200 en búsqueda', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-013: Todos los resultados contienen la palabra buscada', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Búsqueda con Coincidencia Parcial, RN-CAT-02 (GET /products/search) [CP-API-014]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/search?q=Hamm",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "search"],
+          "query": [{ "key": "q", "value": "Hamm" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-014: Status code es 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-014: Devuelve coincidencias parciales (ej. Hammer)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+              "    jsonData.data.forEach(function (producto) {",
+              "        pm.expect(producto.name.toLowerCase()).to.include('hamm');",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Búsqueda Case-Insensitive, RN-CAT-02 (GET /products/search) [CP-API-015]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/search?q=HAMMER",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "search"],
+          "query": [{ "key": "q", "value": "HAMMER" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-015: Status code es 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-015: HAMMER en mayúsculas devuelve resultados (case-insensitive)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Búsqueda sin Resultados, RN-CAT-05 (GET /products/search) [CP-API-016]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/search?q=zzznoexisteproducto",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "search"],
+          "query": [{ "key": "q", "value": "zzznoexisteproducto" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-016: Status code es 200 (no error) ante búsqueda sin resultados', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-016: data es un array vacío', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array').that.is.empty;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Validar Schema de Resultados de Búsqueda (GET /products/search) [CP-API-017]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/search?q=Hammer",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "search"],
+          "query": [{ "key": "q", "value": "Hammer" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-017: Cada resultado tiene id y name de tipo string', function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.data.forEach(function (producto) {",
+              "        pm.expect(producto).to.have.property('id').that.is.a('string');",
+              "        pm.expect(producto).to.have.property('name').that.is.a('string');",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Obtener Detalle de Producto con ID Válido (GET /products/:id) [CP-API-018]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/{{sample_product_id}}",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "{{sample_product_id}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-018: Status code es 200 con un ID de producto existente', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-018: Devuelve el producto solicitado', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.eql(pm.environment.get('sample_product_id'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "description": "ID tomado dinámicamente del primer producto devuelto por la request 01 (pm.environment 'sample_product_id'). Reemplaza el ID hardcodeado anterior, que ya no existía en el catálogo y siempre devolvía 404."
+    },
+    {
+      "name": "10 - Validar Schema de Detalle de Producto (GET /products/:id) [CP-API-021]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/{{sample_product_id}}",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "{{sample_product_id}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-021: El detalle tiene id y name de tipo string', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id').that.is.a('string');",
+              "    pm.expect(jsonData).to.have.property('name').that.is.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Detalle de Producto sin Token de Autenticación (GET /products/:id) [CP-API-022]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/{{sample_product_id}}",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "{{sample_product_id}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-022: Endpoint de detalle es público (sin header Authorization)', function () {",
+              "    pm.expect(pm.request.headers.has('Authorization')).to.eql(false);",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Detalle de Producto con ID Inexistente (GET /products/:id) [CP-API-019]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/01HZZZZZZZZZZZZZZZZZZZZZZZ",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "01HZZZZZZZZZZZZZZZZZZZZZZZ"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-019: Status code es 404 ante ID con formato válido pero inexistente (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "description": "ID con el mismo formato/longitud tipo ULID que los IDs reales, pero construido para no coincidir con ningún producto del catálogo."
+    },
+    {
+      "name": "13 - Detalle de Producto con ID de Formato Inválido (GET /products/:id) [CP-API-020]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/products/id-con-formato-invalido-123",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["products", "id-con-formato-invalido-123"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-020: Status code es 400 ante ID de formato inválido (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Login Exitoso con Credenciales Válidas (POST /users/login) [CP-API-001, CP-API-008]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-001: Status code es 200 con credenciales válidas', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-API-008: La respuesta incluye un campo con el token (string no vacío)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var token = jsonData.token || jsonData.access_token || jsonData.auth_token;",
+              "    pm.expect(token, 'no se encontró token en la respuesta (campos probados: token, access_token, auth_token)').to.be.a('string').and.not.empty;",
+              "});",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    var token = jsonData.token || jsonData.access_token || jsonData.auth_token;",
+              "    if (token) { pm.environment.set('auth_token', token); }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Login con Contraseña Incorrecta (POST /users/login) [CP-API-002]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"ContraseñaIncorrecta1!\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-002: Retorna 401 con email válido y password incorrecta', function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Login con Email No Registrado (POST /users/login) [CP-API-003]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"usuario_invalido@test.com\",\n  \"password\": \"ClaveErronea123!\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-003: Retorna 401 Unauthorized ante email no registrado', function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Login sin Campo Email (POST /users/login) [CP-API-004]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"welcome01\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-004: Status code es 400 sin el campo email (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Login sin Campo Password (POST /users/login) [CP-API-005]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"customer@practicesoftwaretesting.com\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-005: Status code es 400 sin el campo password (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Login con Email en Formato Inválido (POST /users/login) [CP-API-006]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"customer-sin-arroba.com\",\n  \"password\": \"welcome01\"\n}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-006: Status code es 400 con email de formato inválido (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Login con Body Vacío (POST /users/login) [CP-API-007]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "https://api.practicesoftwaretesting.com/users/login",
+          "protocol": "https",
+          "host": ["api", "practicesoftwaretesting", "com"],
+          "path": ["users", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-API-007: Status code es 400 con body vacío (supuesto, a confirmar)', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
